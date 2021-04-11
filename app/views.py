@@ -29,22 +29,26 @@ def index(path):
 
     Also we will render the initial webpage and then let VueJS take control.
     """
-    return render_template('index.html', form=form)
+    return render_template('index.html')
 
-@app.route('/api/upload', methods=['POST'])
+@app.route("/api/upload", methods=["POST"])
 def upload():
-    form=UploadForm()
-    if request.method == "POST" and form.validate_on_submit():
-        description = request.form['description']
-        file = request.files['uploadImage']
-        filename = secure_filename(file.filename)
-        file.save(os.path.join(filefolder, filename))
-        result = [{'message': 'File Upload Successful', 'filename': filename, 'description': description}]
-        return jsonify(result=result)
-    else:
-        error_collection = form_errors(form)
-        error = [{'errors': error_collection}]
-        return  jsonify(errors=error)
+    form = UploadForm()
+    if request.method == "POST":
+        if form.validate_on_submit() == True:
+            descrip = form.description.data
+            filename = assignPath(form.photo.data)
+            return jsonify(message="File uploaded successfully", filename=filename, description=descrip)
+        else:
+            return jsonify(errors=form_errors(form))
+
+def assignPath(upload):
+    filename = secure_filename(upload.filename)
+    upload.save(os.path.join(
+                app.config['UPLOAD_FOLDER'], filename
+    ))
+    return filename
+
 
 
 # Here we define a function to collect form errors from Flask-WTF
